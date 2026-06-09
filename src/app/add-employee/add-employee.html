@@ -1,0 +1,219 @@
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>📋 Employee Management System</h1>
+    <div class="header-buttons">
+      <!-- Only show toggle button for SUPER_ADMIN -->
+       <button *ngIf="userType === 'fixed'" class="nav-btn" (click)="toggleView()">
+  {{ showViewSection ? '📝 Add Employee' : '👁️ View Employees' }}
+</button>
+      <button class="logout-btn" (click)="logout()">
+        🚪 Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Add Employee Section -->
+  <div class="add-section" *ngIf="!showViewSection">
+    <div class="card">
+      <h2>➕ Add New Employee</h2>
+      
+      <div class="form-group">
+        <label>👤 Full Name</label>
+        <input 
+          type="text" 
+          placeholder="Enter employee name" 
+          [(ngModel)]="employeeName"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>📧 Email *</label>
+        <input 
+          type="email" 
+          placeholder="Enter email address" 
+          [(ngModel)]="email"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label>📱 Mobile Number *</label>
+        <input 
+          type="tel" 
+          placeholder="Enter 10-digit mobile number" 
+          [(ngModel)]="mobileNumber"
+          maxlength="10"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label>📅 Joining Date *</label>
+        <input 
+          type="date" 
+          [(ngModel)]="joiningDate"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label>🏢 Department</label>
+        <input 
+          type="text" 
+          placeholder="Enter department" 
+          [(ngModel)]="department"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label>💰 Salary</label>
+        <input 
+          type="number" 
+          placeholder="Enter salary" 
+          [(ngModel)]="salary"
+        >
+      </div>
+      
+      <button class="add-btn" (click)="addEmployee()">
+        ➕ Add Employee
+      </button>
+    </div>
+  </div>
+
+  <!-- View Employees Section -->
+  <div class="view-section" *ngIf="showViewSection">
+    <div class="card">
+      <h2>👁️ Employee List</h2>
+      
+      <!-- Statistics - Only when not loading -->
+      <div class="stats-bar" *ngIf="!isLoading">
+        <div class="stat">
+          <span class="stat-label">Total Employees:</span>
+          <span class="stat-value">{{ getTotalEmployees() }}</span>
+        </div>
+      </div>
+
+      <div style="background: #ff9800; padding: 15px; margin: 10px 0; border-radius: 8px; color: #000;">
+        <strong>🔍 DEBUG INFO:</strong><br>
+        showViewSection = {{ showViewSection }}<br>
+        employees.length = {{ employees.length }}<br>
+        isLoading = {{ isLoading }}<br>
+        userRole = {{ userRole }}<br>
+        <button (click)="loadEmployees()" style="margin-top: 10px;">Reload Data</button>
+      </div>
+      
+      <!-- LOADING STATE - Show while data is loading -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading employees...</p>
+      </div>
+
+      <!-- SEARCH BAR - Only when NOT loading AND data exists -->
+      <div class="search-bar" *ngIf="!isLoading && employees.length > 0">
+        <input 
+          type="text" 
+          placeholder="🔍 Search by name, email, mobile or department..." 
+          [(ngModel)]="searchTerm"
+          (input)="searchEmployees()"
+        >
+      </div>
+
+      <!-- DATA TABLE - Only when NOT loading AND data exists -->
+      <!-- SAFE TABLE STRUCTURE -->
+<div class="table-container" *ngIf="!isLoading && employees.length > 0">
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let emp of employees">
+          <td>{{ emp?.id || '-' }}</td>
+          <td>
+            <div class="employee-name">
+              <div class="avatar">{{ emp?.firstName?.charAt(0) || emp?.name?.charAt(0) || '?' }}</div>
+              {{ emp?.name || emp?.firstName + ' ' + emp?.lastName || 'No Name' }}
+            </div>
+          </td>
+          <td>
+            <span class="department-badge" [style.backgroundColor]="getDepartmentColor(emp?.department)">
+              {{ emp?.department || 'N/A' }}
+            </span>
+          </td>
+          <td>
+            <button class="view-btn" (click)="viewEmployeeProfile(emp.id)">👁️ View</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+      <!-- EMPTY STATE - Only when NOT loading AND no data exists -->
+      <div *ngIf="!isLoading && employees.length === 0" class="no-data">
+        <div class="empty-state">
+          <p>📭 No employees found</p>
+          <!-- Only SUPER_ADMIN can see "Add" button -->
+          <button *ngIf="userRole === 'SUPER_ADMIN'" class="add-small-btn" (click)="toggleView()">
+            Add your first employee
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- View Employee Modal -->
+<div class="modal-overlay" *ngIf="showViewModal" (click)="closeViewModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>👤 Employee Details</h2>
+      <button class="modal-close" (click)="closeViewModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedEmployee">
+      <div class="detail-row">
+        <span class="detail-label">Employee ID:</span>
+        <span class="detail-value">#{{ selectedEmployee.id }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Full Name:</span>
+        <span class="detail-value">{{ selectedEmployee?.name || selectedEmployee?.employeeName || 'N/A' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Email Address:</span>
+        <span class="detail-value">{{ selectedEmployee.email || 'N/A' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Mobile Number:</span>
+        <span class="detail-value">{{ selectedEmployee.mobileNumber || 'N/A' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Joining Date:</span>
+        <span class="detail-value">{{ selectedEmployee.joiningDate || 'N/A' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Department:</span>
+        <span class="detail-value">
+          <span class="department-badge" [style.backgroundColor]="getDepartmentColor(selectedEmployee.department)">
+            {{ selectedEmployee.department }}
+          </span>
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Salary:</span>
+        <span class="detail-value salary">₹{{ selectedEmployee.salary | number }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Created At:</span>
+        <span class="detail-value">{{ selectedEmployee.createdAt || 'N/A' }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="close-btn" (click)="closeViewModal()">Close</button>
+    </div>
+  </div>
+</div>

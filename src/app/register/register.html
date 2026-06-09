@@ -1,0 +1,91 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <div class="logo">👑 EMS</div>
+      <h1>Create Account</h1>
+      <p>Join us to manage employees efficiently</p>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" *ngIf="successMessage">
+      ✅ {{ successMessage }}
+    </div>
+    
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      ⚠️ {{ errorMessage }}
+    </div>
+    
+    <form (ngSubmit)="onRegister()" #registerForm="ngForm">
+      
+      <div class="form-group">
+        <div class="input-icon">👤</div>
+        <input 
+          type="text" 
+          placeholder="Full Name" 
+          [(ngModel)]="fullName"
+          name="fullName"
+          autocomplete="off"
+          required
+        >
+      </div>
+      
+      <div class="form-group">
+        <div class="input-icon">📧</div>
+        <input 
+          type="email" 
+          placeholder="Email Address" 
+          [(ngModel)]="email"
+          name="email"
+          autocomplete="off"
+          required
+        >
+      </div>
+      
+      <div class="form-group">
+        <div class="input-icon">🔒</div>
+        <input 
+          [type]="showPassword ? 'text' : 'password'"
+          placeholder="Password" 
+          [(ngModel)]="password"
+          name="password"
+          autocomplete="new-password"
+          required
+        >
+        <button type="button" class="password-toggle" (click)="togglePassword()">
+          {{ showPassword ? '🙈' : '👁️' }}
+        </button>
+      </div>
+      
+      <div class="form-group">
+        <div class="input-icon">🔒</div>
+        <input 
+          [type]="showConfirmPassword ? 'text' : 'password'"
+          placeholder="Confirm Password" 
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          autocomplete="new-password"
+          required
+        >
+        <button type="button" class="password-toggle" (click)="toggleConfirmPassword()">
+          {{ showConfirmPassword ? '🙈' : '👁️' }}
+        </button>
+      </div>
+      
+      <button type="submit" class="register-btn" [disabled]="isLoading">
+        {{ isLoading ? '⏳ Creating Account...' : '📝 Register' }}
+      </button>
+    </form>
+
+    <!-- Back to Home Button -->
+    <div class="back-link">
+      <button class="back-btn" (click)="goToFrontpage()">
+        ← Back to Home
+      </button>
+    </div>
+    
+    <div class="login-link">
+      Already have an account? <a (click)="goToLogin()">Sign in</a>
+    </div>
+  </div>
+</div>
